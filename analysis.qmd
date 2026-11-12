@@ -1,0 +1,34 @@
+---
+title: "Crypto Markets"
+author: "Ricardo Corvil"
+execute:
+  echo: false
+---
+
+```{r}
+#| message: false
+library(tidyverse)
+library(arrow)
+```
+
+```{r}
+#| cache: true
+prices <- read_parquet("data/daily_prices.parquet") |>
+  as_tibble()
+
+metadata <- read_parquet("data/coin_metadata.parquet") |>
+  as_tibble() |>
+  mutate(
+    launch_date_parsed = as.Date(
+      parse_date_time(launch_date, orders = c("ymd", "Bdy"))
+    )
+  )
+
+categories <- read_parquet("data/categories.parquet") |>
+  as_tibble()
+
+crypto <- prices |>
+  mutate(date = as.Date(date_raw)) |>
+  left_join(metadata, by = "coin_id") |>
+  left_join(categories, by = "category_id", suffix = c("", "_category"))
+```
